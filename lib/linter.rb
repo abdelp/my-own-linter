@@ -61,18 +61,50 @@ class Linter
     end
 
     def subject_length
-        err_msg = "Subject is too long [#{} / ]".freeze
-        sugesstion = 'Use an standardized imperative verb for subject'.freeze
         err_code = 'Layout/SubjectLenght'.freeze
+        sugesstion = ''.freeze
 
         @unpushed_commits.each do |commit|
             message = `git log --format=%B -n 1 #{commit}`
             subject = message.split(/\n/).first
 
             if subject.size > 50
+                sugesstion = "Subject is too long [#{subject.size}/50]".freeze
+                
                 @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
             end
         end
+    end
+
+    def valid_grammar
+        err_code = 'Layout/ValidGrammar'.freeze
+        gbot = Grammarbot::Client.new(api_key: ENV['API_KEY'], language: 'en-US', base_uri: ENV['BASE_URI'])
+
+        @unpushed_commits.each do |commit|
+            message = `git log --format=%B -n 1 #{commit}`
+            message = message.gsub(/\n/, ' ').strip!
+            result = gbot.check(message)
+            sugesstion = result.matches.first.message
+            @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+        end
+    end
+
+    def body_required
+        err_msg = 'No standard imperative verb for subject'.freeze
+        sugesstion = 'Use an standardized imperative verb for subject'.freeze
+        err_code = 'Layout/ImperativeSubject'.freeze
+
+        @unpushed_commits.each do |commit|
+            message = `git log --format=%B -n 1 #{commit}`
+
+            p message
+            puts message
+        end
+    end
+
+    def body_length
+
+
     end
 
     def get_formatted_result

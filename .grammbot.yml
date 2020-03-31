@@ -8,7 +8,7 @@ Layout/SubjectLength:
 #   Min: 2
 Layout/ImperativeSubject:
   Enabled: true
-# Layout/BodyRequired:
-#   Enabled: true
-# Layout/ValidGrammar:
-#   Enabled: true
+Layout/BodyRequired:
+  Enabled: true
+Layout/ValidGrammar:
+  Enabled: true
