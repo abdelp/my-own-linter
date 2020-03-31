@@ -1,3 +1,3 @@
 module ErrorsModule
-    class NoBranchError < StandarError; end
+  class NoBranchFoundError < StandardError; end
 end
