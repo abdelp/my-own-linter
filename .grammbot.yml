@@ -2,8 +2,8 @@ Style/CapitalizedSubject:
   Enabled: true
 # Style/CapitalizeBody:
 #   Enabled: true
-# Layout/SubjectLenght:
-#   Max: 50
+Layout/SubjectLength:
+  Max: 50
 # Metrics/BodyLenght:
 #   Min: 2
 Layout/ImperativeSubject:

@@ -38,7 +38,7 @@ class Linter
             message = `git log --format=%B -n 1 #{commit}`
             subject = message.split(/\n/).first
 
-            if subject != subject.downcase
+            if subject != subject.capitalize
                 @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
             end
         end
@@ -48,13 +48,28 @@ class Linter
         err_msg = 'No standard imperative verb for subject'.freeze
         sugesstion = 'Use an standardized imperative verb for subject'.freeze
         err_code = 'Layout/ImperativeSubject'.freeze
-        imperative_verbs = ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore']
+        imperative_verbs = ['add', 'update', 'fix', 'feat', 'docs', 'style', 'refactor', 'test', 'chore']
 
         @unpushed_commits.each do |commit|
             message = `git log --format=%B -n 1 #{commit}`
             subject = message.split(/\n/).first
 
             if imperative_verbs.none? { |verb| verb == subject.downcase }
+                @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+            end
+        end
+    end
+
+    def subject_length
+        err_msg = "Subject is too long [#{} / ]".freeze
+        sugesstion = 'Use an standardized imperative verb for subject'.freeze
+        err_code = 'Layout/SubjectLenght'.freeze
+
+        @unpushed_commits.each do |commit|
+            message = `git log --format=%B -n 1 #{commit}`
+            subject = message.split(/\n/).first
+
+            if subject.size > 50
                 @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
             end
         end
@@ -67,7 +82,7 @@ class Linter
             output.concat("#{offense[:err_line]}\n")
             output.concat("^\n\n")
         end
-        output.concat("\n\n#{@commits_inspected} commits inspected, #{@offenses.size} offenses detected")
+        output.concat("\n\n#{@unpushed_commits.size} commits inspected, #{@offenses.size} offenses detected")
         output
     end
 
