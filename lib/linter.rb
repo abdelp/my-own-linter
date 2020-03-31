@@ -90,21 +90,35 @@ class Linter
     end
 
     def body_required
-        err_msg = 'No standard imperative verb for subject'.freeze
-        sugesstion = 'Use an standardized imperative verb for subject'.freeze
-        err_code = 'Layout/ImperativeSubject'.freeze
+        err_msg = 'No message body detected'.freeze
+        sugesstion = 'Add a body message'.freeze
+        err_code = 'Layout/BodyRequired'.freeze
 
         @unpushed_commits.each do |commit|
             message = `git log --format=%B -n 1 #{commit}`
 
-            p message
-            puts message
+            body = message.partition("\n\n")[2]
+
+            if body.empty?
+                @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+            end
         end
     end
 
     def body_length
+        err_msg = 'Body length is too short'.freeze
+        err_code = 'Layout/BodyRequired'.freeze
 
+        @unpushed_commits.each do |commit|
+            message = `git log --format=%B -n 1 #{commit}`
 
+            body = message.partition("\n\n")[2]
+
+            if body.size < 10 && body.size > 0
+                sugesstion = "Body is too short [#{body.size}/10]"
+                @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+            end
+        end
     end
 
     def get_formatted_result
