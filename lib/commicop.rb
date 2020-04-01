@@ -57,11 +57,10 @@ class Commicop
     imperative_verbs = %w[add update fix feat docs style refactor test chore]
 
     @unpushed_commits.each do |commit|
-      # message = `git log --format=%B -n 1 #{commit}`
-      # subject = message.split(/\n/).first
       git_commit = GitCommit.new(commit, @git_dir)
-      if imperative_verbs.none? { |verb| verb == subject.downcase }
-        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+
+      if imperative_verbs.none? { |verb| verb == git_commit.subject.split(" ")[0].downcase }
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
       end
     end
   end
@@ -71,14 +70,13 @@ class Commicop
     sugesstion = ''.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      subject = message.split(/\n/).first
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      next unless subject.size > 50
+      next unless git_commit.subject.size > 50
 
-      sugesstion = "Subject is too long [#{subject.size}/50]".freeze
+      sugesstion = "Subject is too long [#{git_commit.subject.size}/50]".freeze
 
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: git_commit.sugesstion, err_line: git_commit.subject }
     end
   end
 
