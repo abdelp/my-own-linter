@@ -44,11 +44,11 @@ You can run the file scripts/create_repos.sh in order to create local repos to t
     
 Then in the root folder of the project, execute the linter:
 
-    $ bin/main master /tmp/repo2/.git
+    $ bin/main.rb master /tmp/repo2/.git
     
 Should be displayed the next output:
 
-![screenshot](./offenses.png)
+![offenses](./assets/images/offenses.png)
 
 
 ## Author
