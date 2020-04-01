@@ -4,20 +4,24 @@ require 'dotenv/load'
 require_relative 'string.rb'
 require_relative 'error.rb'
 require_relative 'gitcommit.rb'
+require_relative 'gitcommands.rb'
 
 class Commicop
   include ErrorsModule
+  include GitCommandsModule
+
+  attr_reader :offenses
 
   def initialize(branch, git_dir)
     @git_dir = git_dir
-    branch_exists = system("git --git-dir #{@git_dir} show-ref --verify --quiet refs/heads/#{branch}")
+    branch_exists = branch_exists?(@git_dir, branch)
     raise NoBranchFoundError, "No branch #{branch} found" unless branch_exists
 
     @branch = branch
     @offenses = []
     @commits_inspected = 0
     @unpushed_commits = []
-    unpushed_commits
+    load_commits
   end
 
   def methods_to_check
@@ -131,8 +135,8 @@ class Commicop
 
   private
 
-  def unpushed_commits
-    last_pushed_commit = `git --git-dir #{@git_dir} rev-parse origin/#{@branch}`.chomp
-    @unpushed_commits = `git --git-dir #{@git_dir} rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
+  def load_commits
+    last_pushed_commit = last_pushed_commit(@git_dir, @branch) 
+    @unpushed_commits = unpushed_commits(@git_dir, last_pushed_commit)
   end
 end
