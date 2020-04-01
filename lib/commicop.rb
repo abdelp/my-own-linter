@@ -3,20 +3,25 @@ require 'grammarbot'
 require 'dotenv/load'
 require_relative 'string.rb'
 require_relative 'error.rb'
+require_relative 'gitcommit.rb'
+require_relative 'gitcommands.rb'
 
 class Commicop
   include ErrorsModule
+  include GitCommandsModule
 
-  def initialize(branch)
-    branch_exists = system("git show-ref --verify --quiet refs/heads/#{branch}")
+  attr_reader :offenses
 
+  def initialize(branch, git_dir)
+    @git_dir = git_dir
+    branch_exists = branch_exists?(@git_dir, branch)
     raise NoBranchFoundError, "No branch #{branch} found" unless branch_exists
 
     @branch = branch
     @offenses = []
     @commits_inspected = 0
     @unpushed_commits = []
-    unpushed_commits
+    load_commits
   end
 
   def methods_to_check
@@ -42,11 +47,10 @@ class Commicop
     err_code = 'Style/CapitalizedSubject'.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      subject = message.split(/\n/).first
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      if subject != subject.capitalize
-        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+      if git_commit.subject != git_commit.subject.capitalize
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
       end
     end
   end
@@ -57,11 +61,10 @@ class Commicop
     imperative_verbs = %w[add update fix feat docs style refactor test chore]
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      subject = message.split(/\n/).first
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      if imperative_verbs.none? { |verb| verb == subject.downcase }
-        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+      if imperative_verbs.none? { |verb| verb == git_commit.subject.split(' ')[0].downcase }
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
       end
     end
   end
@@ -71,14 +74,13 @@ class Commicop
     sugesstion = ''.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      subject = message.split(/\n/).first
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      next unless subject.size > 50
+      next unless git_commit.subject.size > 50
 
-      sugesstion = "Subject is too long [#{subject.size}/50]".freeze
+      sugesstion = "Subject is too long [#{git_commit.subject.size}/50]".freeze
 
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
     end
   end
 
@@ -87,11 +89,10 @@ class Commicop
     gbot = Grammarbot::Client.new(api_key: ENV['API_KEY'], language: 'en-US', base_uri: ENV['BASE_URI'])
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      message = message.gsub(/\n/, ' ').strip!
-      result = gbot.check(message)
-      sugesstion = result.matches.first.message
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+      git_commit = GitCommit.new(commit, @git_dir)
+      result = gbot.check(git_commit.message)
+      sugesstion = result.matches.empty? ? '' : result.matches.first.message
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
     end
   end
 
@@ -100,11 +101,11 @@ class Commicop
     err_code = 'Layout/BodyRequired'.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      body = message.partition("\n\n")[2]
-
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message } if body.empty?
+      if git_commit.body.empty?
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
+      end
     end
   end
 
@@ -112,13 +113,11 @@ class Commicop
     err_code = 'Layout/BodyRequired'.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      body = message.partition("\n\n")[2]
-
-      if body.size < 10 && body.size.positive?
-        sugesstion = "Body is too short [#{body.size}/10]"
-        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+      if git_commit.body.size < 10 && git_commit.body.size.positive?
+        sugesstion = "Body is too short [#{git_commit.body.size}/10]"
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
       end
     end
   end
@@ -136,8 +135,8 @@ class Commicop
 
   private
 
-  def unpushed_commits
-    last_pushed_commit = `git rev-parse origin/#{@branch}`.chomp
-    @unpushed_commits = `git rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
+  def load_commits
+    last_pushed_commit = last_pushed_commit(@git_dir, @branch)
+    @unpushed_commits = unpushed_commits(@git_dir, last_pushed_commit)
   end
 end
