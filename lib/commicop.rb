@@ -45,10 +45,6 @@ class Commicop
     @unpushed_commits.each do |commit|
       git_commit = GitCommit.new(commit, @git_dir)
 
-      # puts git_commit
-      # # message = `git log --format=%B -n 1 #{commit}`
-      # # subject = message.split(/\n/).first
-
       if git_commit.subject != git_commit.subject.capitalize
         @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
       end
@@ -61,9 +57,9 @@ class Commicop
     imperative_verbs = %w[add update fix feat docs style refactor test chore]
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      subject = message.split(/\n/).first
-
+      # message = `git log --format=%B -n 1 #{commit}`
+      # subject = message.split(/\n/).first
+      git_commit = GitCommit.new(commit, @git_dir)
       if imperative_verbs.none? { |verb| verb == subject.downcase }
         @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: subject }
       end
