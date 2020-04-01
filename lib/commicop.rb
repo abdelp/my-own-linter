@@ -76,7 +76,7 @@ class Commicop
 
       sugesstion = "Subject is too long [#{git_commit.subject.size}/50]".freeze
 
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: git_commit.sugesstion, err_line: git_commit.subject }
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
     end
   end
 
@@ -85,11 +85,11 @@ class Commicop
     gbot = Grammarbot::Client.new(api_key: ENV['API_KEY'], language: 'en-US', base_uri: ENV['BASE_URI'])
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
-      message = message.gsub(/\n/, ' ').strip!
-      result = gbot.check(message)
+      git_commit = GitCommit.new(commit, @git_dir)
+
+      result = gbot.check(git_commit.message)
       sugesstion = result.matches.first.message
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
     end
   end
 
@@ -98,11 +98,9 @@ class Commicop
     err_code = 'Layout/BodyRequired'.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      body = message.partition("\n\n")[2]
-
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message } if body.empty?
+      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message } if git_commit.body.empty?
     end
   end
 
@@ -110,13 +108,13 @@ class Commicop
     err_code = 'Layout/BodyRequired'.freeze
 
     @unpushed_commits.each do |commit|
-      message = `git log --format=%B -n 1 #{commit}`
+      git_commit = GitCommit.new(commit, @git_dir)
 
-      body = message.partition("\n\n")[2]
+      # body = message.partition("\n\n")[2]
 
-      if body.size < 10 && body.size.positive?
-        sugesstion = "Body is too short [#{body.size}/10]"
-        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: message }
+      if git_commit.body.size < 10 && git_commit.body.size.positive?
+        sugesstion = "Body is too short [#{git_commit.body.size}/10]"
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
       end
     end
   end
