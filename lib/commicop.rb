@@ -59,7 +59,7 @@ class Commicop
     @unpushed_commits.each do |commit|
       git_commit = GitCommit.new(commit, @git_dir)
 
-      if imperative_verbs.none? { |verb| verb == git_commit.subject.split(" ")[0].downcase }
+      if imperative_verbs.none? { |verb| verb == git_commit.subject.split(' ')[0].downcase }
         @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
       end
     end
@@ -86,9 +86,8 @@ class Commicop
 
     @unpushed_commits.each do |commit|
       git_commit = GitCommit.new(commit, @git_dir)
-
       result = gbot.check(git_commit.message)
-      sugesstion = result.matches.first.message
+      sugesstion = result.matches.empty? ? '' : result.matches.first.message
       @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
     end
   end
@@ -100,7 +99,9 @@ class Commicop
     @unpushed_commits.each do |commit|
       git_commit = GitCommit.new(commit, @git_dir)
 
-      @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message } if git_commit.body.empty?
+      if git_commit.body.empty?
+        @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.message }
+      end
     end
   end
 
@@ -109,8 +110,6 @@ class Commicop
 
     @unpushed_commits.each do |commit|
       git_commit = GitCommit.new(commit, @git_dir)
-
-      # body = message.partition("\n\n")[2]
 
       if git_commit.body.size < 10 && git_commit.body.size.positive?
         sugesstion = "Body is too short [#{git_commit.body.size}/10]"
@@ -133,7 +132,7 @@ class Commicop
   private
 
   def unpushed_commits
-    last_pushed_commit = `git rev-parse origin/#{@branch}`.chomp
-    @unpushed_commits = `git rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
+    last_pushed_commit = `git --git-dir #{@git_dir} rev-parse origin/#{@branch}`.chomp
+    @unpushed_commits = `git --git-dir #{@git_dir} rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
   end
 end
