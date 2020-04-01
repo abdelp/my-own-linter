@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require_relative '../lib/linter'
+require_relative '../lib/commicop'
 
 branch = ARGV.first
-linter = Linter.new(branch)
-linter.check_params
-puts linter.formatted_result
+commicop = Commicop.new(branch)
+commicop.check_params
+puts commicop.formatted_result

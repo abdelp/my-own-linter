@@ -4,7 +4,7 @@ require 'dotenv/load'
 require_relative 'string.rb'
 require_relative 'error.rb'
 
-class Linter
+class Commicop
   include ErrorsModule
 
   def initialize(branch)
@@ -137,7 +137,7 @@ class Linter
   private
 
   def unpushed_commits
-    last_pushed_commit = `git rev-parse develop`.chomp
+    last_pushed_commit = `git rev-parse #{@branch}`.chomp
     @unpushed_commits = `git rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
   end
 end
