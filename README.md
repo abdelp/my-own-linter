@@ -50,6 +50,9 @@ Should be displayed the next output:
 
 ![offenses](./assets/images/offenses.png)
 
+You can enable or disable the test validations in the .commicop.yml file in the root directory
+
+![validations](./assets/images/validations.png)
 
 ## Author
 
