@@ -136,7 +136,7 @@ class Commicop
   private
 
   def load_commits
-    last_pushed_commit = last_pushed_commit(@git_dir, @branch) 
+    last_pushed_commit = last_pushed_commit(@git_dir, @branch)
     @unpushed_commits = unpushed_commits(@git_dir, last_pushed_commit)
   end
 end
