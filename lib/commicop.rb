@@ -137,7 +137,7 @@ class Commicop
   private
 
   def unpushed_commits
-    last_pushed_commit = `git rev-parse #{@branch}`.chomp
+    last_pushed_commit = `git rev-parse origin/#{@branch}`.chomp
     @unpushed_commits = `git rev-list #{last_pushed_commit}..HEAD`.chomp.split(/\n+/)
   end
 end
