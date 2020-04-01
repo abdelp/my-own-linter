@@ -1,0 +1,12 @@
+Style/CapitalizedSubject:
+  Enabled: true
+Layout/SubjectLength:
+  Max: 50
+Metrics/BodyLength:
+  Min: 10
+Layout/ImperativeSubject:
+  Enabled: true
+Layout/BodyRequired:
+  Enabled: true
+Layout/ValidGrammar:
+  Enabled: true
