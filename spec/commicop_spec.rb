@@ -24,4 +24,12 @@ RSpec.describe Commicop do
             expect(commicop.methods_to_check).to eq(methods)
         end
     end
+
+    describe '#check_params' do
+        
+    end
+
+    describe '#capitlized_subject' do
+        it 'loads into the offenses array all the commits'
+    end
 end
