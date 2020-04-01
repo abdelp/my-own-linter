@@ -10,9 +10,7 @@ class Commicop
 
   def initialize(branch, git_dir)
     @git_dir = git_dir
-    # puts "git --git-dir #{@git_dir} show-ref --verify --quiet refs/heads/#{branch}"
     branch_exists = system("git --git-dir #{@git_dir} show-ref --verify --quiet refs/heads/#{branch}")
-    # puts branch_exists
     raise NoBranchFoundError, "No branch #{branch} found" unless branch_exists
 
     @branch = branch
@@ -45,13 +43,11 @@ class Commicop
     err_code = 'Style/CapitalizedSubject'.freeze
 
     @unpushed_commits.each do |commit|
-      puts commit
-      puts @git_dir
       git_commit = GitCommit.new(commit, @git_dir)
-      # git_commit = GitCommit.new
-      puts git_commit
-      # message = `git log --format=%B -n 1 #{commit}`
-      # subject = message.split(/\n/).first
+
+      # puts git_commit
+      # # message = `git log --format=%B -n 1 #{commit}`
+      # # subject = message.split(/\n/).first
 
       if git_commit.subject != git_commit.subject.capitalize
         @offenses << { sha1: commit, err_code: err_code, sugesstion: sugesstion, err_line: git_commit.subject }
