@@ -7,6 +7,10 @@
 
 - ruby 2.6.5p114 (2019-10-01 revision 67812) [x86_64-linux]
 
+## Video Presentation
+
+[Presentation Link](https://www.loom.com/share/1681256df73243cb885f249c32100b9a)
+
 
 ## Installation
 
@@ -36,7 +40,7 @@ You have to select a branch and the git directory to run the linter:
 
 ### Example
 
-You can run the file scripts/create_repos.sh in order to create local repos to test the linter
+You can run the file scripts/create_repos.sh in order to create local repos to test the linter and test with the rspec
 
     $ chmod 755 scripts/create_repos.sh
 
