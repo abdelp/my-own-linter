@@ -24,6 +24,25 @@ class Commicop
     load_commits
   end
 
+  def check_params
+    methods_to_check.each do |item|
+      send(item[:method])
+    end
+  end
+
+  def formatted_result
+    output = "Offenses:\n\n"
+    @offenses.each do |offense|
+      output.concat("#{offense[:sha1]}: #{offense[:err_code]}: #{offense[:sugesstion]}\n")
+      output.concat("#{offense[:err_line]}\n")
+      output.concat("^\n\n")
+    end
+    output.concat("\n\n#{@unpushed_commits.size} commits inspected, #{@offenses.size} offenses detected")
+    output
+  end
+
+  private
+
   def methods_to_check
     cnf = YAML.load_file(File.join(__dir__, '../.commicop.yml'))
     methods_to_check = []
@@ -34,12 +53,6 @@ class Commicop
     end
 
     methods_to_check
-  end
-
-  def check_params
-    methods_to_check.each do |item|
-      send(item[:method])
-    end
   end
 
   def capitalized_subject
@@ -121,19 +134,6 @@ class Commicop
       end
     end
   end
-
-  def formatted_result
-    output = "Offenses:\n\n"
-    @offenses.each do |offense|
-      output.concat("#{offense[:sha1]}: #{offense[:err_code]}: #{offense[:sugesstion]}\n")
-      output.concat("#{offense[:err_line]}\n")
-      output.concat("^\n\n")
-    end
-    output.concat("\n\n#{@unpushed_commits.size} commits inspected, #{@offenses.size} offenses detected")
-    output
-  end
-
-  private
 
   def load_commits
     last_pushed_commit = last_pushed_commit(@git_dir, @branch)
